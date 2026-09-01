@@ -73,15 +73,15 @@
                     <i class="fa-solid fa-cloud-sun-rain text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-base text-white tracking-tight">香港天氣預報</h1>
-                    <p id="updateTimeText" class="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
+                    <h1 class="font-extrabold text-[20px] text-white tracking-tight">香港天氣預報</h1>
+                    <p id="updateTimeText" class="text-[15px] text-zinc-400 flex items-center gap-1 mt-0.5">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>每 30 分鐘自動同步天文台</span>
                     </p>
                 </div>
             </div>
 
-            <button onclick="fetchAllWeatherData()" class="ios-btn-active bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-2xl border border-white/10 transition shadow-md flex items-center gap-1.5 text-xs font-bold">
+            <button onclick="fetchAllWeatherData()" class="ios-btn-active bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-2xl border border-white/10 transition shadow-md flex items-center gap-1.5 text-[16px] font-bold">
                 <i class="fa-solid fa-rotate-right" id="refreshSpinner"></i>
                 <span>刷新</span>
             </button>
@@ -98,12 +98,12 @@
                 <div class="grid grid-cols-12 gap-3 items-center">
                     <!-- Left Section: Main Weather Info (Left Aligned) -->
                     <div class="col-span-6 flex flex-col items-start text-left">
-                        <div id="mainWeatherIcon" class="text-amber-400 text-4xl mb-2 drop-shadow-md">
+                        <div id="mainWeatherIcon" class="text-amber-400 text-[40px] mb-2 drop-shadow-md">
                             <i class="fa-solid fa-sun animate-spin-slow"></i>
                         </div>
-                        <h2 id="mainTemp" class="text-4xl sm:text-5xl font-black text-white tracking-tighter">--°C</h2>
-                        <p id="mainCondition" class="text-sm sm:text-base font-bold text-zinc-200 mt-1">正在連接香港天文台...</p>
-                        <p id="mainUpdateInfo" class="text-[11px] text-zinc-400 mt-1">香港天文台總部數據</p>
+                        <h2 id="mainTemp" class="text-[40px] sm:text-[52px] font-black text-white tracking-tighter">--°C</h2>
+                        <p id="mainCondition" class="text-[18px] sm:text-[20px] font-bold text-zinc-200 mt-1">正在連接香港天文台...</p>
+                        <p id="mainUpdateInfo" class="text-[15px] text-zinc-400 mt-1">香港天文台總部數據</p>
                     </div>
 
                     <!-- Right Section: GPS Location, Humidity & UV Index -->
@@ -114,8 +114,8 @@
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
                             <div class="overflow-hidden">
-                                <span class="text-[10px] text-zinc-400 block font-bold">目前位置</span>
-                                <span id="locationVal" class="text-xs font-black text-zinc-100 truncate block">定位中...</span>
+                                <span class="text-[14px] text-zinc-400 block font-bold">目前位置</span>
+                                <span id="locationVal" class="text-[16px] font-black text-zinc-100 truncate block">定位中...</span>
                             </div>
                         </div>
 
@@ -125,8 +125,8 @@
                                 <i class="fa-solid fa-droplet"></i>
                             </div>
                             <div class="overflow-hidden">
-                                <span class="text-[10px] text-zinc-400 block font-bold">相對濕度</span>
-                                <span id="humidityVal" class="text-xs font-black text-zinc-100 truncate block">--%</span>
+                                <span class="text-[14px] text-zinc-400 block font-bold">相對濕度</span>
+                                <span id="humidityVal" class="text-[16px] font-black text-zinc-100 truncate block">--%</span>
                             </div>
                         </div>
 
@@ -136,8 +136,8 @@
                                 <i class="fa-solid fa-sun"></i>
                             </div>
                             <div class="overflow-hidden">
-                                <span class="text-[10px] text-zinc-400 block font-bold">紫外線指數</span>
-                                <span id="uvVal" class="text-xs font-black text-zinc-100 truncate block">--</span>
+                                <span class="text-[14px] text-zinc-400 block font-bold">紫外線指數</span>
+                                <span id="uvVal" class="text-[16px] font-black text-zinc-100 truncate block">--</span>
                             </div>
                         </div>
                     </div>
@@ -148,14 +148,14 @@
             <div class="ios-glass-card rounded-3xl p-4 shadow-xl flex flex-col gap-3 shrink-0 mb-2">
                 <div class="flex items-center justify-between border-b border-white/10 pb-2">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-days text-indigo-400 text-sm"></i>
-                        <h3 class="text-sm font-black text-zinc-200">九天天氣預報</h3>
+                        <i class="fa-solid fa-calendar-days text-indigo-400 text-[18px]"></i>
+                        <h3 class="text-[18px] font-black text-zinc-200">九天天氣預報</h3>
                     </div>
-                    <span class="text-[11px] text-zinc-400 font-semibold">天文台展望</span>
+                    <span class="text-[15px] text-zinc-400 font-semibold">天文台展望</span>
                 </div>
 
                 <div id="forecastList" class="flex flex-col gap-2">
-                    <div class="text-center py-6 text-zinc-500 text-xs">
+                    <div class="text-center py-6 text-zinc-500 text-[16px]">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入九天預報...
                     </div>
                 </div>
@@ -165,7 +165,7 @@
 
         <!-- Footer Bar -->
         <footer class="ios-glass rounded-2xl px-3 py-2 text-center shrink-0 border border-white/5">
-            <p class="text-[10px] text-zinc-400">
+            <p class="text-[14px] text-zinc-400">
                 ☁️ 資料來源：香港天文台 Open API ｜ 每 30 分鐘自動更新
             </p>
         </footer>
@@ -324,13 +324,13 @@
                         return `
                             <div class="bg-zinc-900/80 p-3 rounded-2xl border border-white/5 flex items-center justify-between">
                                 <div class="flex flex-col">
-                                    <span class="text-xs font-black text-white">${formattedDate} (${weekDay})</span>
-                                    <span class="text-[11px] text-zinc-400 truncate max-w-[200px] mt-0.5">${weatherDesc}</span>
+                                    <span class="text-[16px] font-black text-white">${formattedDate} (${weekDay})</span>
+                                    <span class="text-[15px] text-zinc-400 truncate max-w-[200px] mt-0.5">${weatherDesc}</span>
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0 text-right">
-                                    <span class="text-xs font-black text-blue-400">${minT}°</span>
-                                    <span class="text-xs text-zinc-500">-</span>
-                                    <span class="text-xs font-black text-rose-400">${maxT}°C</span>
+                                    <span class="text-[16px] font-black text-blue-400">${minT}°</span>
+                                    <span class="text-[16px] text-zinc-500">-</span>
+                                    <span class="text-[16px] font-black text-rose-400">${maxT}°C</span>
                                 </div>
                             </div>
                         `;
@@ -338,7 +338,7 @@
                 }
             } catch (err) {
                 console.warn("Failed to fetch 9-day forecast:", err);
-                container.innerHTML = `<div class="text-center text-xs text-rose-400 py-4">無法載入九天預報資料</div>`;
+                container.innerHTML = `<div class="text-center text-[16px] text-rose-400 py-4">無法載入九天預報資料</div>`;
             }
         }
     </script>
