@@ -200,8 +200,11 @@
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=zh-HK`);
                         const data = await res.json();
                         if (data && data.address) {
-                            const district = data.address.suburb || data.address.district || data.address.city_district || data.address.town || data.address.county || "香港";
-                            if (locEl) locEl.innerText = district;
+                            // Prioritize specific neighborhood tags (suburb, neighbourhood, quarter, residential) 
+                            // over administrative districts (district, county) to show precise areas like 牛頭角
+                            const addr = data.address;
+                            const specificLocation = addr.neighbourhood || addr.suburb || addr.quarter || addr.residential || addr.city_district || addr.district || addr.town || addr.county || "香港";
+                            if (locEl) locEl.innerText = specificLocation;
                         } else {
                             if (locEl) locEl.innerText = "香港";
                         }
