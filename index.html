@@ -150,11 +150,10 @@
                         <i class="fa-solid fa-calendar-days text-indigo-400 text-[22px]"></i>
                         <h3 class="text-[22px] font-black text-zinc-200">三天天氣預報</h3>
                     </div>
-                    <span class="text-[17px] text-zinc-400 font-semibold">天文台展望</span>
                 </div>
 
-                <div id="forecastList" class="flex flex-col gap-2">
-                    <div class="text-center py-6 text-zinc-500 text-[20px]">
+                <div id="forecastList" class="grid grid-cols-3 gap-2">
+                    <div class="col-span-3 text-center py-6 text-zinc-500 text-[20px]">
                         <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入三天預報...
                     </div>
                 </div>
@@ -172,7 +171,6 @@
     </div>
 
     <script>
-        // 香港天文台氣象站經緯度座標對照表（用於精準對應測站地名）
         const hkoStations = [
             { name: "牛頭角", lat: 22.3180, lng: 114.2190 },
             { name: "觀塘", lat: 22.3124, lng: 114.2253 },
@@ -204,16 +202,14 @@
             fetchAllWeatherData();
             getUserLocation();
 
-            // Set up 30-minute automatic background refresh timer (30 * 60 * 1000 ms)
             setInterval(() => {
-                console.log("Auto-refreshing weather data (30-minute interval)...");
                 fetchAllWeatherData();
                 getUserLocation();
             }, 30 * 60 * 1000);
         };
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // metres
+            const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2-lat1) * Math.PI/180;
@@ -224,7 +220,7 @@
                       Math.sin(Δλ/2) * Math.sin(Δλ/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-            return R * c; // in metres
+            return R * c;
         }
 
         function getUserLocation() {
@@ -306,16 +302,13 @@
                     }
 
                     if (data.icon && data.icon.length > 0) {
-                        const iconCode = data.icon[0];
-                        updateWeatherIconAndDesc(iconCode);
+                        updateWeatherIconAndDesc(data.icon[0]);
                     }
                 }
             } catch (err) {
                 console.warn("Failed to fetch current weather:", err);
                 document.getElementById('mainTemp').innerText = "--°C";
                 document.getElementById('mainCondition').innerText = "無法載入天氣數據";
-                document.getElementById('humidityVal').innerText = "數據異常";
-                document.getElementById('uvVal').innerText = "數據異常";
             }
         }
 
@@ -323,8 +316,6 @@
             const iconEl = document.getElementById('mainWeatherIcon');
             const condEl = document.getElementById('mainCondition');
             
-            // Map HKO icon codes to FontAwesome icons and Chinese descriptions
-            // Rain icons use neutral slate-400 color to avoid confusion with yellow rain warnings
             let iconHtml = '<span class="text-amber-400"><i class="fa-solid fa-sun"></i></span>';
             let desc = "晴朗";
 
@@ -346,6 +337,19 @@
             condEl.innerText = desc;
         }
 
+        function getWeatherIconHtml(iconCode) {
+            if ([50, 51, 52, 53, 54].includes(iconCode)) {
+                return '<i class="fa-solid fa-cloud-sun text-amber-300"></i>';
+            } else if ([60, 61, 62, 63, 64, 65].includes(iconCode)) {
+                return '<i class="fa-solid fa-cloud-rain text-slate-400"></i>';
+            } else if ([70, 71, 72, 73, 74, 75, 76, 77].includes(iconCode)) {
+                return '<i class="fa-solid fa-bolt-lightning text-amber-400"></i>';
+            } else if ([80, 81, 82, 83, 84, 85].includes(iconCode)) {
+                return '<i class="fa-solid fa-cloud text-slate-400"></i>';
+            }
+            return '<i class="fa-solid fa-sun text-amber-400"></i>';
+        }
+
         async function fetchThreeDayForecast() {
             const container = document.getElementById('forecastList');
             try {
@@ -353,27 +357,23 @@
                 const data = await res.json();
 
                 if (data && data.weatherForecast && Array.isArray(data.weatherForecast)) {
-                    // 只取前 3 天的預報資料
                     const threeDays = data.weatherForecast.slice(0, 3);
                     
                     container.innerHTML = threeDays.map(day => {
                         const dateStr = day.forecastDate;
-                        const formattedDate = `${dateStr.substring(4, 6)}月${dateStr.substring(6, 8)}日`;
-                        const weekDay = day.week;
+                        const formattedDate = `${dateStr.substring(4, 6)}/${dateStr.substring(6, 8)}`;
+                        const weekDay = day.week.replace('星期', '');
                         const minT = day.forecastMintemp ? day.forecastMintemp.value : '--';
                         const maxT = day.forecastMaxtemp ? day.forecastMaxtemp.value : '--';
-                        const weatherDesc = day.forecastWeather || '天氣平穩';
+                        const iconHtml = getWeatherIconHtml(day.ForecastIcon || 50);
 
                         return `
-                            <div class="bg-zinc-900/80 p-3.5 rounded-2xl border border-white/5 flex items-center justify-between">
-                                <div class="flex flex-col">
-                                    <span class="text-[18px] font-black text-white">${formattedDate} (${weekDay})</span>
-                                    <span class="text-[17px] text-zinc-400 truncate max-w-[210px] mt-0.5">${weatherDesc}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 shrink-0 text-right">
-                                    <span class="text-[18px] font-black text-blue-400">${minT}°</span>
-                                    <span class="text-[18px] text-zinc-500">-</span>
-                                    <span class="text-[18px] font-black text-rose-400">${maxT}°C</span>
+                            <div class="bg-zinc-900/80 p-3 rounded-2xl border border-white/5 flex flex-col items-center justify-between text-center gap-2">
+                                <span class="text-[16px] font-bold text-zinc-300">${formattedDate}<br><span class="text-[14px] text-zinc-400">(${weekDay})</span></span>
+                                <div class="text-[26px] my-1">${iconHtml}</div>
+                                <div class="flex flex-col items-center gap-0.5">
+                                    <span class="text-[16px] font-black text-rose-400">${maxT}°</span>
+                                    <span class="text-[16px] font-black text-blue-400">${minT}°</span>
                                 </div>
                             </div>
                         `;
@@ -381,7 +381,7 @@
                 }
             } catch (err) {
                 console.warn("Failed to fetch 3-day forecast:", err);
-                container.innerHTML = `<div class="text-center text-[18px] text-rose-400 py-4">無法載入三天預報資料</div>`;
+                container.innerHTML = `<div class="col-span-3 text-center text-[18px] text-rose-400 py-4">無法載入三天預報資料</div>`;
             }
         }
     </script>
