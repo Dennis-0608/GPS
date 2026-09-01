@@ -67,30 +67,30 @@
     <div class="max-w-md w-full mx-auto h-full flex flex-col px-3 py-2 gap-3 justify-between relative overflow-hidden">
 
         <!-- Header Component -->
-        <header class="ios-glass rounded-3xl p-4 shadow-2xl border border-white/10 flex items-center justify-between shrink-0 z-20">
+        <header class="ios-glass rounded-3xl p-4 shadow-2xl border border-white/10 flex items-center justify-between shrink-0 z-25">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
                     <i class="fa-solid fa-cloud-sun-rain text-[20px]"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-[24px] text-white tracking-tight">香港天氣預報</h1>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="font-extrabold text-[24px] text-white tracking-tight">香港天氣預報</h1>
+                        <button onclick="fetchAllWeatherData()" class="ios-btn-active bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded-xl border border-white/10 transition shadow-md flex items-center gap-1.5 text-[16px] font-bold">
+                            <i class="fa-solid fa-rotate-right" id="refreshSpinner"></i>
+                            <span>更新</span>
+                        </button>
+                    </div>
                     <p id="updateTimeText" class="text-[17px] text-zinc-400 flex items-center gap-1 mt-0.5">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>每 30 分鐘自動同步天文台</span>
                     </p>
                 </div>
             </div>
-
-            <button onclick="fetchAllWeatherData()" class="ios-btn-active bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-2xl border border-white/10 transition shadow-md flex items-center gap-1.5 text-[20px] font-bold">
-                <i class="fa-solid fa-rotate-right" id="refreshSpinner"></i>
-                <span>刷新</span>
-            </button>
         </header>
 
         <!-- Main Weather Scrollable Area -->
         <main class="flex-1 ios-scroll flex flex-col gap-3 overflow-y-auto pr-0.5 min-h-0">
 
-            <!-- Current Main Weather Card -->
             <div class="ios-glass-card rounded-3xl p-5 shadow-2xl relative overflow-hidden shrink-0">
                 <div class="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -99,7 +99,7 @@
                     <!-- Left Section: Main Weather Info (Left Aligned) -->
                     <div class="col-span-6 flex flex-col items-start text-left">
                         <div id="mainWeatherIcon" class="text-amber-400 text-[44px] mb-2 drop-shadow-md">
-                            <i class="fa-solid fa-sun animate-spin-slow"></i>
+                            <i class="fa-solid fa-sun"></i>
                         </div>
                         <h2 id="mainTemp" class="text-[44px] sm:text-[56px] font-black text-white tracking-tighter">--°C</h2>
                         <p id="mainCondition" class="text-[22px] sm:text-[24px] font-bold text-zinc-200 mt-1">正在連接香港天文台...</p>
@@ -144,19 +144,18 @@
                 </div>
             </div>
 
-            <!-- 9-Day Weather Forecast Section -->
             <div class="ios-glass-card rounded-3xl p-4 shadow-xl flex flex-col gap-3 shrink-0 mb-2">
                 <div class="flex items-center justify-between border-b border-white/10 pb-2">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-calendar-days text-indigo-400 text-[22px]"></i>
-                        <h3 class="text-[22px] font-black text-zinc-200">九天天氣預報</h3>
+                        <h3 class="text-[22px] font-black text-zinc-200">三天天氣預報</h3>
                     </div>
                     <span class="text-[17px] text-zinc-400 font-semibold">天文台展望</span>
                 </div>
 
                 <div id="forecastList" class="flex flex-col gap-2">
                     <div class="text-center py-6 text-zinc-500 text-[20px]">
-                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入九天預報...
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入三天預報...
                     </div>
                 </div>
             </div>
@@ -173,7 +172,7 @@
     </div>
 
     <script>
-        // 香港天文台自動氣象站座標對照表（含牛頭角、觀塘及全港主要分區氣象站）
+        // 香港天文台氣象站經緯度座標對照表（用於精準對應測站地名）
         const hkoStations = [
             { name: "牛頭角", lat: 22.3180, lng: 114.2190 },
             { name: "觀塘", lat: 22.3124, lng: 114.2253 },
@@ -185,7 +184,6 @@
             { name: "油麻地", lat: 22.3115, lng: 114.1687 },
             { name: "旺角", lat: 22.3190, lng: 114.1694 },
             { name: "紅磡", lat: 22.3050, lng: 114.1860 },
-            { name: "觀景山", lat: 22.3160, lng: 114.3920 },
             { name: "沙田", lat: 22.3820, lng: 114.1878 },
             { name: "葵涌", lat: 22.3615, lng: 114.1303 },
             { name: "荃灣", lat: 22.3704, lng: 114.1143 },
@@ -241,7 +239,6 @@
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     
-                    // 尋找距離最近的天文台分區氣象站
                     let nearestStation = "香港";
                     let minDistance = Infinity;
 
@@ -253,7 +250,6 @@
                         }
                     });
 
-                    // 如果距離最近的分區氣象站小於 8 公里，直接顯示該站名稱（如牛頭角）
                     if (locEl) {
                         locEl.innerText = nearestStation;
                     }
@@ -271,7 +267,7 @@
 
             await Promise.all([
                 fetchCurrentWeather(),
-                fetchNineDayForecast()
+                fetchThreeDayForecast()
             ]);
 
             setTimeout(() => {
@@ -281,14 +277,12 @@
             }, 600);
         }
 
-        // Fetch current weather, humidity and UV index from HKO
         async function fetchCurrentWeather() {
             try {
                 const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc');
                 const data = await res.json();
 
                 if (data) {
-                    // Temperature in Observatory / HK Headquarters
                     if (data.temperature && Array.isArray(data.temperature.data) && data.temperature.data.length > 0) {
                         const tstItem = data.temperature.data.find(i => i.place === '香港天文台') || data.temperature.data[0];
                         if (tstItem) {
@@ -296,7 +290,6 @@
                         }
                     }
 
-                    // Relative Humidity
                     if (data.humidity && Array.isArray(data.humidity.data) && data.humidity.data.length > 0) {
                         const hum = data.humidity.data[0];
                         document.getElementById('humidityVal').innerText = `${hum.value}%`;
@@ -304,7 +297,6 @@
                         document.getElementById('humidityVal').innerText = "暫無數據";
                     }
 
-                    // UV Index (Safe fallback for nighttime/empty response)
                     if (data.uvindex && Array.isArray(data.uvindex.data) && data.uvindex.data.length > 0) {
                         const uv = data.uvindex.data[0];
                         const uvDesc = uv.desc ? ` (${uv.desc})` : '';
@@ -313,7 +305,6 @@
                         document.getElementById('uvVal').innerText = "0 (夜間/低)";
                     }
 
-                    // Weather Icon / Description
                     if (data.icon && data.icon.length > 0) {
                         const iconCode = data.icon[0];
                         updateWeatherIconAndDesc(iconCode);
@@ -333,20 +324,21 @@
             const condEl = document.getElementById('mainCondition');
             
             // Map HKO icon codes to FontAwesome icons and Chinese descriptions
-            let iconHtml = '<i class="fa-solid fa-sun"></i>';
+            // Rain icons use neutral slate-400 color to avoid confusion with yellow rain warnings
+            let iconHtml = '<span class="text-amber-400"><i class="fa-solid fa-sun"></i></span>';
             let desc = "晴朗";
 
             if ([50, 51, 52, 53, 54].includes(iconCode)) {
-                iconHtml = '<i class="fa-solid fa-cloud-sun"></i>';
+                iconHtml = '<span class="text-amber-300"><i class="fa-solid fa-cloud-sun"></i></span>';
                 desc = "部分時間有陽光";
             } else if ([60, 61, 62, 63, 64, 65].includes(iconCode)) {
-                iconHtml = '<i class="fa-solid fa-cloud-rain"></i>';
+                iconHtml = '<span class="text-slate-400"><i class="fa-solid fa-cloud-rain"></i></span>';
                 desc = "有雨 / 驟雨";
             } else if ([70, 71, 72, 73, 74, 75, 76, 77].includes(iconCode)) {
-                iconHtml = '<i class="fa-solid fa-bolt-lightning"></i>';
+                iconHtml = '<span class="text-amber-400"><i class="fa-solid fa-bolt-lightning"></i></span>';
                 desc = "雷暴";
             } else if ([80, 81, 82, 83, 84, 85].includes(iconCode)) {
-                iconHtml = '<i class="fa-solid fa-cloud"></i>';
+                iconHtml = '<span class="text-slate-400"><i class="fa-solid fa-cloud"></i></span>';
                 desc = "多雲";
             }
 
@@ -354,15 +346,17 @@
             condEl.innerText = desc;
         }
 
-        // Fetch 9-day weather forecast from HKO
-        async function fetchNineDayForecast() {
+        async function fetchThreeDayForecast() {
             const container = document.getElementById('forecastList');
             try {
                 const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc');
                 const data = await res.json();
 
                 if (data && data.weatherForecast && Array.isArray(data.weatherForecast)) {
-                    container.innerHTML = data.weatherForecast.map(day => {
+                    // 只取前 3 天的預報資料
+                    const threeDays = data.weatherForecast.slice(0, 3);
+                    
+                    container.innerHTML = threeDays.map(day => {
                         const dateStr = day.forecastDate;
                         const formattedDate = `${dateStr.substring(4, 6)}月${dateStr.substring(6, 8)}日`;
                         const weekDay = day.week;
@@ -380,14 +374,14 @@
                                     <span class="text-[18px] font-black text-blue-400">${minT}°</span>
                                     <span class="text-[18px] text-zinc-500">-</span>
                                     <span class="text-[18px] font-black text-rose-400">${maxT}°C</span>
-                                }
+                                </div>
                             </div>
                         `;
                     }).join('');
                 }
             } catch (err) {
-                console.warn("Failed to fetch 9-day forecast:", err);
-                container.innerHTML = `<div class="text-center text-[18px] text-rose-400 py-4">無法載入九天預報資料</div>`;
+                console.warn("Failed to fetch 3-day forecast:", err);
+                container.innerHTML = `<div class="text-center text-[18px] text-rose-400 py-4">無法載入三天預報資料</div>`;
             }
         }
     </script>
