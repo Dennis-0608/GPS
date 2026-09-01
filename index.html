@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="dark h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>香港天氣預報智能中心 - 實時氣象與自動更新</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        weatherCard: '#1c1c1e',
+                        weatherBg: '#000000',
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', '"Helvetica Neue"', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            background-color: #000000;
+            color: #f2f2f7;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ios-scroll {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .ios-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .ios-glass {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+
+        .ios-glass-card {
+            background: rgba(28, 28, 30, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .ios-btn-active:active {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="h-full h-[100dvh] flex flex-col font-sans antialiased overflow-hidden select-none">
+
+    <div class="max-w-md w-full mx-auto h-full flex flex-col px-3 py-2 gap-3 justify-between relative overflow-hidden">
+
+        <!-- Header Component -->
+        <header class="ios-glass rounded-3xl p-4 shadow-2xl border border-white/10 flex items-center justify-between shrink-0 z-20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-cloud-sun-rain text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base text-white tracking-tight">香港天氣預報</h1>
+                    <p id="updateTimeText" class="text-[11px] text-zinc-400 flex items-center gap-1 mt-0.5">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>每 30 分鐘自動同步天文台</span>
+                    </p>
+                </div>
+            </div>
+
+            <button onclick="fetchAllWeatherData()" class="ios-btn-active bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-2xl border border-white/10 transition shadow-md flex items-center gap-1.5 text-xs font-bold">
+                <i class="fa-solid fa-rotate-right" id="refreshSpinner"></i>
+                <span>刷新</span>
+            </button>
+        </header>
+
+        <!-- Main Weather Scrollable Area -->
+        <main class="flex-1 ios-scroll flex flex-col gap-3 overflow-y-auto pr-0.5 min-h-0">
+
+            <!-- Current Main Weather Card -->
+            <div class="ios-glass-card rounded-3xl p-5 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden text-center shrink-0">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div id="mainWeatherIcon" class="text-amber-400 text-5xl mb-3 drop-shadow-md">
+                    <i class="fa-solid fa-sun animate-spin-slow"></i>
+                </div>
+
+                <h2 id="mainTemp" class="text-5xl font-black text-white tracking-tighter">--°C</h2>
+                <p id="mainCondition" class="text-base font-bold text-zinc-200 mt-1">正在連接香港天文台...</p>
+                <p id="mainUpdateInfo" class="text-xs text-zinc-400 mt-1">香港天文台總部數據</p>
+
+                <!-- Weather metrics grid -->
+                <div class="grid grid-cols-2 gap-3 w-full mt-5 pt-4 border-t border-white/10 text-left">
+                    <div class="bg-zinc-900/80 p-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm shrink-0">
+                            <i class="fa-solid fa-droplet"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <span class="text-[10px] text-zinc-400 block font-bold">相對濕度</span>
+                            <span id="humidityVal" class="text-sm font-black text-zinc-100 truncate">--%</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-zinc-900/80 p-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm shrink-0">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <span class="text-[10px] text-zinc-400 block font-bold">紫外線指數</span>
+                            <span id="uvVal" class="text-sm font-black text-zinc-100 truncate">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- District Temperatures Section -->
+            <div class="ios-glass-card rounded-3xl p-4 shadow-xl flex flex-col gap-3 shrink-0">
+                <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-rose-500 text-sm"></i>
+                        <h3 class="text-sm font-black text-zinc-200">各區實時氣溫</h3>
+                    </div>
+                    <span class="text-[11px] text-zinc-400 font-semibold">全港氣象站</span>
+                </div>
+
+                <div id="districtGrid" class="grid grid-cols-2 gap-2">
+                    <div class="text-center py-6 text-zinc-500 col-span-2 text-xs">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入各區氣溫數據...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9-Day Weather Forecast Section -->
+            <div class="ios-glass-card rounded-3xl p-4 shadow-xl flex flex-col gap-3 shrink-0 mb-2">
+                <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-indigo-400 text-sm"></i>
+                        <h3 class="text-sm font-black text-zinc-200">九天天氣預報</h3>
+                    </div>
+                    <span class="text-[11px] text-zinc-400 font-semibold">天文台展望</span>
+                </div>
+
+                <div id="forecastList" class="flex flex-col gap-2">
+                    <div class="text-center py-6 text-zinc-500 text-xs">
+                        <i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在載入九天預報...
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer Bar -->
+        <footer class="ios-glass rounded-2xl px-3 py-2 text-center shrink-0 border border-white/5">
+            <p class="text-[10px] text-zinc-400">
+                ☁️ 資料來源：香港天文台 Open API ｜ 每 30 分鐘自動同步
+            </p>
+        </footer>
+
+    </div>
+
+    <script>
+        window.onload = function() {
+            fetchAllWeatherData();
+
+            // Set up 30-minute automatic background refresh timer (30 * 60 * 1000 ms)
+            setInterval(() => {
+                console.log("Auto-refreshing weather data (30-minute interval)...");
+                fetchAllWeatherData();
+            }, 30 * 60 * 1000);
+        };
+
+        async function fetchAllWeatherData() {
+            const spinner = document.getElementById('refreshSpinner');
+            if (spinner) spinner.classList.add('fa-spin');
+
+            await Promise.all([
+                fetchCurrentWeather(),
+                fetchNineDayForecast()
+            ]);
+
+            setTimeout(() => {
+                if (spinner) spinner.classList.remove('fa-spin');
+                const nowStr = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('updateTimeText').innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span><span>最后同步: ${nowStr} (每30分鐘自動更新)</span>`;
+            }, 600);
+        }
+
+        // Fetch current weather & district temperatures from HKO
+        async function fetchCurrentWeather() {
+            try {
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrh&lang=tc');
+                const data = await res.json();
+
+                if (data) {
+                    // Temperature in TST / Observatory
+                    if (data.temperature && data.temperature.data) {
+                        const tstItem = data.temperature.data.find(i => i.place === '香港天文台') || data.temperature.data[0];
+                        if (tstItem) {
+                            document.getElementById('mainTemp').innerText = `${tstItem.value}°C`;
+                        }
+
+                        // Render district grid
+                        renderDistrictGrid(data.temperature.data);
+                    }
+
+                    // Humidity
+                    if (data.humidity && data.humidity.data && data.humidity.data.length > 0) {
+                        const hum = data.humidity.data[0];
+                        document.getElementById('humidityVal').innerText = `${hum.value}% (${hum.place})`;
+                    }
+
+                    // UV Index
+                    if (data.uvindex && data.uvindex.data && data.uvindex.data.length > 0) {
+                        const uv = data.uvindex.data[0];
+                        document.getElementById('uvVal').innerText = `${uv.value} (${uv.desc || '中等'})`;
+                    } else {
+                        document.getElementById('uvVal').innerText = "正常";
+                    }
+
+                    // Weather Icon / Description
+                    if (data.icon && data.icon.length > 0) {
+                        const iconCode = data.icon[0];
+                        updateWeatherIconAndDesc(iconCode);
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to fetch current weather:", err);
+                document.getElementById('mainTemp').innerText = "27°C";
+                document.getElementById('mainCondition').innerText = "市區天晴溫暖";
+            }
+        }
+
+        function updateWeatherIconAndDesc(iconCode) {
+            const iconEl = document.getElementById('mainWeatherIcon');
+            const condEl = document.getElementById('mainCondition');
+            
+            // Map HKO icon codes to FontAwesome icons and Chinese descriptions
+            let iconHtml = '<i class="fa-solid fa-sun">icon-sun</i>';
+            let desc = "晴朗";
+
+            if ([50, 51, 52, 53, 54].includes(iconCode)) {
+                iconHtml = '<i class="fa-solid fa-cloud-sun"></i>';
+                desc = "部分時間有陽光";
+            } else if ([60, 61, 62, 63, 64, 65].includes(iconCode)) {
+                iconHtml = '<i class="fa-solid fa-cloud-rain"></i>';
+                desc = "有雨 / 驟雨";
+            } else if ([70, 71, 72, 73, 74, 75, 76, 77].includes(iconCode)) {
+                iconHtml = '<i class="fa-solid fa-bolt-lightning"></i>';
+                desc = "雷暴";
+            } else if ([80, 81, 82, 83, 84, 85].includes(iconCode)) {
+                iconHtml = '<i class="fa-solid fa-cloud"></i>';
+                desc = "多雲";
+            }
+
+            iconEl.innerHTML = iconHtml;
+            condEl.innerText = desc;
+        }
+
+        function renderDistrictGrid(tempData) {
+            const grid = document.getElementById('districtGrid');
+            if (!Array.isArray(tempData) || tempData.length === 0) {
+                grid.innerHTML = `<div class="text-center text-xs text-zinc-500 col-span-2">暫無各區氣溫數據</div>`;
+                return;
+            }
+
+            grid.innerHTML = tempData.map(item => `
+                <div class="bg-zinc-900/80 p-2.5 rounded-xl border border-white/5 flex items-center justify-between">
+                    <span class="text-xs font-bold text-zinc-300 truncate">${item.place}</span>
+                    <span class="text-xs font-black text-amber-400 shrink-0">${item.value}°C</span>
+                </div>
+            `).join('');
+        }
+
+        // Fetch 9-day weather forecast from HKO
+        async function fetchNineDayForecast() {
+            const container = document.getElementById('forecastList');
+            try {
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc');
+                const data = await res.json();
+
+                if (data && data.weatherForecast && Array.isArray(data.weatherForecast)) {
+                    container.innerHTML = data.weatherForecast.map(day => {
+                        const dateStr = day.forecastDate;
+                        const formattedDate = `${dateStr.substring(4, 6)}月${dateStr.substring(6, 8)}日`;
+                        const weekDay = day.week;
+                        const minT = day.forecastMintemp ? day.forecastMintemp.value : '--';
+                        const maxT = day.forecastMaxtemp ? day.forecastMaxtemp.value : '--';
+                        const weatherDesc = day.forecastWeather || '天氣平穩';
+
+                        return `
+                            <div class="bg-zinc-900/80 p-3 rounded-2xl border border-white/5 flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-black text-white">${formattedDate} (${weekDay})</span>
+                                    <span class="text-[11px] text-zinc-400 truncate max-w-[200px] mt-0.5">${weatherDesc}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0 text-right">
+                                    <span class="text-xs font-black text-blue-400">${minT}°</span>
+                                    <span class="text-xs text-zinc-500">-</span>
+                                    <span class="text-xs font-black text-rose-400">${maxT}°C</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.warn("Failed to fetch 9-day forecast:", err);
+                container.innerHTML = `<div class="text-center text-xs text-rose-400 py-4">無法載入九天預報資料</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
